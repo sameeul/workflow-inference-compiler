@@ -39,7 +39,7 @@ parser.add_argument('--ignore_docker_processes', default=False, action="store_tr
 parser.add_argument('--user_space_docker_cmd', default='docker',
                     help='Specify which command to use to run OCI containers.')
 
-parser.add_argument('--no_docker_remove_entrypoints', default=False, action="store_true",
+parser.add_argument('--docker_remove_entrypoints', default=False, action="store_true",
                     help='Do not remove entrypoints from docker images before running workflows.')
 
 parser.add_argument('--allow_partial_failures', default=False, action="store_true",

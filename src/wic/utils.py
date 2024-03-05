@@ -1,7 +1,9 @@
 import copy
 from pathlib import Path
+import tempfile
 from typing import Any, Dict, List, Optional, Tuple
 
+import docker
 import yaml
 
 from .wic_types import (Namespaces, RoseTree, StepId, Json, Yaml, YamlForest, YamlTree)
@@ -554,3 +556,36 @@ def get_output_mapping(output_mapping: Dict[str, str], out_key: str) -> str:
         # print('out_key', out_key)
 
     return out_key
+
+
+def remove_docker_entry_points():
+    client = docker.from_env()
+
+    # Get a list of all Docker images
+    images = client.images.list()
+
+    # Iterate over each container
+    for image in images:
+        if  len(image.attrs['RepoTags']) != 0  and len(image.tags) != 0 :
+
+            noentrypoint_tag_found = False
+            for tag in image.tags:
+                if tag.endswith('-noentrypoint'):
+                    noentrypoint_tag_found = True
+                    
+            if not noentrypoint_tag_found:
+                # Define the content of the Dockerfile
+                dockerfile_content = f'''
+                FROM {image.tags[0]}
+                ENTRYPOINT []
+                        '''
+                with tempfile.TemporaryDirectory() as tempdir:
+                    with open(tempdir + '/Dockerfile_tmp', mode='w', encoding='utf-8') as f:
+                        f.write(dockerfile_content)
+
+                    # Build the new Docker image from the Dockerfile
+                    new_image, build_logs = client.images.build(
+                        path=tempdir,
+                        dockerfile="Dockerfile_tmp",
+                        tag=f"modified-{image.tags[0]}"
+                    )

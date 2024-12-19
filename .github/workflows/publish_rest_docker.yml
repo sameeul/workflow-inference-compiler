@@ -36,5 +36,5 @@ jobs:
           context: .
           file: ./docker/Dockerfile_ubuntu_REST
           push: true
-          tags: sameeul/sophios:${{ github.ref }}
+          tags: sameeul/sophios:${{ env.tag }}
 
